@@ -116,67 +116,121 @@
         </div>
       </section>
 
-      <!-- Right Pane: Realtime Visualizer -->
+      <!-- Right Pane: Realtime Visualizer & Snapshots -->
       <section class="pane pane-right">
-        <!-- Player Toolbar -->
-        <div class="player-toolbar">
-          <div class="player-controls-row">
-            <div class="player-btn-group">
-              <button id="btn-first-step" class="player-btn" title="Primeiro Passo (Home)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="11 19 2 12 11 5 11 19"></polygon>
-                  <polygon points="22 19 13 12 22 5 22 19"></polygon>
-                </svg>
-              </button>
-              <button id="btn-prev-step" class="player-btn" title="Passo Anterior (Seta Esquerda)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="19 20 9 12 19 4 19 20"></polygon>
-                  <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line>
-                </svg>
-              </button>
-              <button id="btn-play-pause" class="player-btn player-btn-play" title="Reproduzir / Pausar (Barra de Espaço)">
-                <svg id="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                <svg id="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
-                  <rect x="6" y="4" width="4" height="16"></rect>
-                  <rect x="14" y="4" width="4" height="16"></rect>
-                </svg>
-              </button>
-              <button id="btn-next-step" class="player-btn" title="Próximo Passo (Seta Direita)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
-                  <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line>
-                </svg>
-              </button>
-              <button id="btn-last-step" class="player-btn" title="Último Passo (End)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="13 19 22 12 13 5 13 19"></polygon>
-                  <polygon points="2 19 11 12 2 5 2 19"></polygon>
-                </svg>
-              </button>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-size: 0.72rem; color: var(--text-dim);">Velocidade:</span>
-              <select id="speed-select" class="speed-select" aria-label="Velocidade da animação">
-                <option value="1200">0.5x</option>
-                <option value="600" selected>1.0x</option>
-                <option value="300">2.0x</option>
-                <option value="100">5.0x</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Timeline Scrubber -->
-          <div class="player-scrubber-row">
-            <input id="step-slider" type="range" class="step-slider" min="0" max="0" value="0" aria-label="Linha do tempo dos passos">
-            <span id="step-counter-text" class="step-counter-text">Passo 0 de 0</span>
+        <!-- View Mode Navigation Tabs -->
+        <div class="view-mode-tabs-header">
+          <div class="view-mode-tabs">
+            <button id="tab-interactive" class="view-tab active" title="Visualização dinâmica passo a passo com player">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>Visualizador Ao Vivo</span>
+            </button>
+            <button id="tab-snapshots" class="view-tab" title="Ver todas as etapas como snapshots colapsáveis em acordeom">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="3" y1="15" x2="21" y2="15"></line>
+              </svg>
+              <span>Snapshots em Acordeom</span>
+              <span id="snapshots-count-badge" class="snapshots-count-pill">0</span>
+            </button>
           </div>
         </div>
 
-        <!-- Visualizer State Display Area -->
-        <div id="visualizer-scroll-area" class="visualizer-scroll-area"></div>
+        <!-- 1. Interactive Step-by-Step View -->
+        <div id="view-interactive-container" class="view-panel active">
+          <!-- Player Toolbar -->
+          <div class="player-toolbar">
+            <div class="player-controls-row">
+              <div class="player-btn-group">
+                <button id="btn-first-step" class="player-btn" title="Primeiro Passo (Home)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="11 19 2 12 11 5 11 19"></polygon>
+                    <polygon points="22 19 13 12 22 5 22 19"></polygon>
+                  </svg>
+                </button>
+                <button id="btn-prev-step" class="player-btn" title="Passo Anterior (Seta Esquerda)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                    <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line>
+                  </svg>
+                </button>
+                <button id="btn-play-pause" class="player-btn player-btn-play" title="Reproduzir / Pausar (Barra de Espaço)">
+                  <svg id="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  <svg id="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                  </svg>
+                </button>
+                <button id="btn-next-step" class="player-btn" title="Próximo Passo (Seta Direita)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                    <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line>
+                  </svg>
+                </button>
+                <button id="btn-last-step" class="player-btn" title="Último Passo (End)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="13 19 22 12 13 5 13 19"></polygon>
+                    <polygon points="2 19 11 12 2 5 2 19"></polygon>
+                  </svg>
+                </button>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.72rem; color: var(--text-dim);">Velocidade:</span>
+                <select id="speed-select" class="speed-select" aria-label="Velocidade da animação">
+                  <option value="1200">0.5x</option>
+                  <option value="600" selected>1.0x</option>
+                  <option value="300">2.0x</option>
+                  <option value="100">5.0x</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Timeline Scrubber -->
+            <div class="player-scrubber-row">
+              <input id="step-slider" type="range" class="step-slider" min="0" max="0" value="0" aria-label="Linha do tempo dos passos">
+              <span id="step-counter-text" class="step-counter-text">Passo 0 de 0</span>
+            </div>
+          </div>
+
+          <!-- Visualizer State Display Area -->
+          <div id="visualizer-scroll-area" class="visualizer-scroll-area"></div>
+        </div>
+
+        <!-- 2. Snapshots Accordion Timeline View -->
+        <div id="view-snapshots-container" class="view-panel" style="display: none;">
+          <!-- Snapshots Toolbar -->
+          <div class="snapshots-toolbar">
+            <div class="snapshots-toolbar-left">
+              <span class="snapshots-toolbar-title">Histórico de Snapshots da Execução</span>
+              <span id="snapshots-toolbar-counter" class="snapshots-toolbar-counter">0 etapas</span>
+            </div>
+            <div class="snapshots-toolbar-right">
+              <button id="btn-expand-all-snapshots" class="btn btn-secondary btn-xs" title="Expandir todos os acordions">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="7 13 12 18 17 13"></polyline>
+                  <polyline points="7 6 12 11 17 6"></polyline>
+                </svg>
+                <span>Expandir Todos</span>
+              </button>
+              <button id="btn-collapse-all-snapshots" class="btn btn-secondary btn-xs" title="Minimizar todos os acordions">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="17 11 12 6 7 11"></polyline>
+                  <polyline points="17 18 12 13 7 18"></polyline>
+                </svg>
+                <span>Recolher Todos</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Snapshots Accordion Scroll Area -->
+          <div id="snapshots-scroll-area" class="snapshots-scroll-area"></div>
+        </div>
       </section>
     </main>
 

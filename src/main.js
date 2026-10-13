@@ -2,7 +2,7 @@ import './style.css';
 import { PROBLEMS } from './problems.js';
 import { runAndTrace } from './tracer.js';
 import { createCodeEditor } from './editor.js';
-import { renderExecutionState } from './visualizer.js';
+import { renderExecutionState, renderSnapshotsAccordion } from './visualizer.js';
 import confetti from 'canvas-confetti';
 
 // State variables
@@ -17,6 +17,7 @@ let isPlaying = false;
 let playInterval = null;
 let playbackSpeed = 600;
 let debounceTimer = null;
+let currentViewMode = 'interactive'; // 'interactive' | 'snapshots'
 
 // DOM Elements
 const problemSelect = document.getElementById('problem-select');
@@ -24,6 +25,17 @@ const problemDescCard = document.getElementById('problem-desc-card');
 const editorContainer = document.getElementById('editor-container');
 const testCasesButtonsContainer = document.getElementById('test-cases-buttons');
 const visualizerScrollArea = document.getElementById('visualizer-scroll-area');
+
+// View Mode Tabs & Containers
+const tabInteractive = document.getElementById('tab-interactive');
+const tabSnapshots = document.getElementById('tab-snapshots');
+const viewInteractiveContainer = document.getElementById('view-interactive-container');
+const viewSnapshotsContainer = document.getElementById('view-snapshots-container');
+const snapshotsCountBadge = document.getElementById('snapshots-count-badge');
+const snapshotsToolbarCounter = document.getElementById('snapshots-toolbar-counter');
+const snapshotsScrollArea = document.getElementById('snapshots-scroll-area');
+const btnExpandAllSnapshots = document.getElementById('btn-expand-all-snapshots');
+const btnCollapseAllSnapshots = document.getElementById('btn-collapse-all-snapshots');
 
 const btnToggleAutoRun = document.getElementById('btn-toggle-autorun');
 const btnRunTests = document.getElementById('btn-run-tests');
@@ -139,6 +151,56 @@ function switchTestCase(idx) {
 }
 
 /**
+ * Switches between interactive player view and snapshots accordion view
+ */
+function switchViewMode(mode) {
+  currentViewMode = mode;
+  if (mode === 'interactive') {
+    tabInteractive.classList.add('active');
+    tabSnapshots.classList.remove('active');
+    viewInteractiveContainer.style.display = 'flex';
+    viewSnapshotsContainer.style.display = 'none';
+  } else {
+    tabSnapshots.classList.add('active');
+    tabInteractive.classList.remove('active');
+    viewSnapshotsContainer.style.display = 'flex';
+    viewInteractiveContainer.style.display = 'none';
+    renderSnapshots();
+  }
+}
+
+function renderSnapshots() {
+  if (!executionResult || !executionResult.steps) {
+    if (snapshotsScrollArea) {
+      snapshotsScrollArea.innerHTML = '<div class="visualizer-empty"><p>Nenhum snapshot disponível.</p></div>';
+    }
+    return;
+  }
+
+  renderSnapshotsAccordion(
+    snapshotsScrollArea,
+    executionResult.steps,
+    currentStepIndex,
+    (jumpIndex) => {
+      // Quando clica em "Ver no Player", comuta para a aba do player e vai para o passo
+      switchViewMode('interactive');
+      goToStep(jumpIndex);
+    }
+  );
+}
+
+function updateActiveSnapshotInAccordion(index) {
+  if (!snapshotsScrollArea) return;
+  snapshotsScrollArea.querySelectorAll('.snapshot-card').forEach((card, idx) => {
+    if (idx === index) {
+      card.classList.add('active-snapshot');
+    } else {
+      card.classList.remove('active-snapshot');
+    }
+  });
+}
+
+/**
  * Executes current code and updates visualizer state
  */
 function executeCurrentCode() {
@@ -149,16 +211,28 @@ function executeCurrentCode() {
     stopPlayback();
     editor.highlightLine(executionResult.error?.line || 1);
     renderExecutionState(visualizerScrollArea, null, 0, executionResult.error);
+    if (snapshotsScrollArea) {
+      snapshotsScrollArea.innerHTML = `
+        <div class="visualizer-empty">
+          <p style="color: #fb7185;">Erro no código. Corrija para gerar os snapshots.</p>
+        </div>
+      `;
+    }
+    snapshotsCountBadge.textContent = '0';
+    snapshotsToolbarCounter.textContent = '0 etapas';
     updatePlayerControls(0, 0);
     return;
   }
 
   const steps = executionResult.steps || [];
   stepSlider.max = Math.max(0, steps.length - 1);
+  snapshotsCountBadge.textContent = `${steps.length}`;
+  snapshotsToolbarCounter.textContent = `${steps.length} etapa${steps.length === 1 ? '' : 's'} gerada${steps.length === 1 ? '' : 's'}`;
 
   // Jump to step 0 or stay in current step
   currentStepIndex = 0;
   goToStep(currentStepIndex);
+  renderSnapshots();
 }
 
 function handleCodeChange(newCode) {
@@ -196,6 +270,9 @@ function goToStep(index) {
 
   // Update controls
   updatePlayerControls(currentStepIndex, steps.length);
+
+  // Update active state in snapshots
+  updateActiveSnapshotInAccordion(currentStepIndex);
 }
 
 function updatePlayerControls(current, total) {
@@ -334,6 +411,21 @@ function runAllTestCases() {
 }
 
 // Event Listeners
+tabInteractive.addEventListener('click', () => switchViewMode('interactive'));
+tabSnapshots.addEventListener('click', () => switchViewMode('snapshots'));
+
+btnExpandAllSnapshots.addEventListener('click', () => {
+  if (snapshotsScrollArea) {
+    snapshotsScrollArea.querySelectorAll('.snapshot-card').forEach(card => card.classList.remove('collapsed'));
+  }
+});
+
+btnCollapseAllSnapshots.addEventListener('click', () => {
+  if (snapshotsScrollArea) {
+    snapshotsScrollArea.querySelectorAll('.snapshot-card').forEach(card => card.classList.add('collapsed'));
+  }
+});
+
 btnToggleAutoRun.addEventListener('click', () => {
   autoRunEnabled = !autoRunEnabled;
   if (autoRunEnabled) {
