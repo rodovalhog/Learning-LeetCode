@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><polygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JS VisualLab - Plataforma Visual de Treino LeetCode</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      window.process = window.process || { env: { NODE_ENV: 'production' }, platform: 'browser', version: '' };
+      window.global = window;
+    </script>
+  </head>
+  <body>
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <span>JS VisualLab</span>
+          <span class="brand-tag">LeetCode Runner</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="problem-select-wrapper">
+          <svg class="problem-select-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <select id="problem-select" class="problem-select" aria-label="Selecione o exercício"></select>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Live Auto-Run toggle -->
+        <div id="btn-toggle-autorun" class="auto-run-switch active" title="Executa o código automaticamente enquanto você digita">
+          <span class="status-dot"></span>
+          <span>Tempo Real</span>
+        </div>
+
+        <!-- Run all test cases -->
+        <button id="btn-run-tests" class="btn btn-success" title="Testar todos os casos de teste">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          <span>Validar Testes</span>
+        </button>
+
+        <!-- Manual Run -->
+        <button id="btn-run-manual" class="btn btn-primary" title="Executar código imediatamente">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Executar</span>
+        </button>
+
+        <!-- Help Modal Button -->
+        <button id="btn-help" class="btn-icon" title="Atalhos e Como Funciona">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Split Workspace -->
+    <main class="app-workspace">
+      <!-- Left Pane: Code Editor -->
+      <section class="pane pane-left">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            <span>Editor de Código (JavaScript)</span>
+          </div>
+          <button id="btn-toggle-desc" class="btn-icon" title="Expandir/Recolher Descrição do Problema">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Problem Description Collapsible Card -->
+        <div id="problem-desc-card" class="problem-desc-card"></div>
+
+        <!-- CodeMirror Editor -->
+        <div class="editor-wrapper">
+          <div id="editor-container" class="editor-container"></div>
+        </div>
+
+        <!-- Test Case Quick Selector Toolbar -->
+        <div class="test-cases-toolbar">
+          <div class="test-cases-list">
+            <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: 600;">Casos:</span>
+            <div id="test-cases-buttons" class="test-cases-list"></div>
+          </div>
+          <button id="btn-reset-code" class="btn btn-secondary" style="font-size: 0.72rem; padding: 0.25rem 0.5rem;" title="Restaurar código inicial do problema">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+              <path d="M3 3v5h5"></path>
+            </svg>
+            <span>Restaurar</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Right Pane: Realtime Visualizer -->
+      <section class="pane pane-right">
+        <!-- Player Toolbar -->
+        <div class="player-toolbar">
+          <div class="player-controls-row">
+            <div class="player-btn-group">
+              <button id="btn-first-step" class="player-btn" title="Primeiro Passo (Home)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="11 19 2 12 11 5 11 19"></polygon>
+                  <polygon points="22 19 13 12 22 5 22 19"></polygon>
+                </svg>
+              </button>
+              <button id="btn-prev-step" class="player-btn" title="Passo Anterior (Seta Esquerda)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                  <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line>
+                </svg>
+              </button>
+              <button id="btn-play-pause" class="player-btn player-btn-play" title="Reproduzir / Pausar (Barra de Espaço)">
+                <svg id="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <svg id="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                  <rect x="6" y="4" width="4" height="16"></rect>
+                  <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+              </button>
+              <button id="btn-next-step" class="player-btn" title="Próximo Passo (Seta Direita)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                  <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line>
+                </svg>
+              </button>
+              <button id="btn-last-step" class="player-btn" title="Último Passo (End)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="13 19 22 12 13 5 13 19"></polygon>
+                  <polygon points="2 19 11 12 2 5 2 19"></polygon>
+                </svg>
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.72rem; color: var(--text-dim);">Velocidade:</span>
+              <select id="speed-select" class="speed-select" aria-label="Velocidade da animação">
+                <option value="1200">0.5x</option>
+                <option value="600" selected>1.0x</option>
+                <option value="300">2.0x</option>
+                <option value="100">5.0x</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Timeline Scrubber -->
+          <div class="player-scrubber-row">
+            <input id="step-slider" type="range" class="step-slider" min="0" max="0" value="0" aria-label="Linha do tempo dos passos">
+            <span id="step-counter-text" class="step-counter-text">Passo 0 de 0</span>
+          </div>
+        </div>
+
+        <!-- Visualizer State Display Area -->
+        <div id="visualizer-scroll-area" class="visualizer-scroll-area"></div>
+      </section>
+    </main>
+
+    <!-- Test Suite Modal -->
+    <div id="modal-tests" class="modal-backdrop" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span>Resultado dos Casos de Teste</span>
+          </div>
+          <button id="btn-close-tests" class="btn-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div id="modal-tests-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="modal-help" class="modal-backdrop" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>Como Usar o JS VisualLab</span>
+          </div>
+          <button id="btn-close-help" class="btn-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body" style="font-size: 0.88rem; line-height: 1.6; color: #cbd5e1;">
+          <p><strong>⚡ Execução em Tempo Real:</strong> Conforme você digita o código na esquerda, o algoritmo é analisado e executado na direita automaticamente.</p>
+          <p><strong>🎯 Ponteiros e Arrays Visuais:</strong> Variáveis que representam índices (como <code>i</code>, <code>left</code>, <code>right</code>, <code>mid</code>) são detectadas e exibidas como ponteiros animados sobre as células do array.</p>
+          <p><strong>📊 Inspetor de Variáveis:</strong> Cada alteração de valor faz a variável piscar em destaque para você acompanhar as transformações na memória.</p>
+          <p><strong>⌨️ Atalhos do Teclado:</strong></p>
+          <ul style="margin-left: 1.25rem;">
+            <li><code>Espaço</code>: Play / Pausar animação</li>
+            <li><code>Seta Direita</code>: Avançar um passo</li>
+            <li><code>Seta Esquerda</code>: Voltar um passo</li>
+            <li><code>Home / End</code>: Ir para o primeiro / último passo</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
