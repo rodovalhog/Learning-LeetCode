@@ -265,7 +265,9 @@ export function runAndTrace(code) {
   let hasReturned = false;
 
   const NON_POINTER_NAMES = new Set([
-    'diff', 'target', 'sum', 'total', 'maxSum', 'currentSum', 'count', 'val', 'ans', 'result', 'res', 'temp'
+    'diff', 'target', 'sum', 'total', 'maxSum', 'currentSum', 'count', 'val', 'ans', 'result', 'res', 'temp',
+    'k', 'windowSum', 'maxWater', 'maxLength', 'minLen', 'width', 'h', 'area', 'm', 'n',
+    'minPrice', 'maxProfit', 'profit', 'price'
   ]);
 
   const tracer = {
@@ -303,6 +305,12 @@ export function runAndTrace(code) {
           arrays.push({
             name: key,
             data: cloned
+          });
+        } else if (typeof val === 'string' && val.length >= 1 && val.length <= 50 && ['s', 'str', 'clean', 't', 'word', 'chars'].includes(key)) {
+          arrays.push({
+            name: key,
+            data: Array.from(val),
+            isString: true
           });
         } else if (cloned && (cloned.__isMap || cloned.__isSet)) {
           maps.push({

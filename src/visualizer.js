@@ -449,19 +449,31 @@ export function generateStepExplanation(step, prevStep, stepIndex, totalSteps) {
   }
 
   // 3. Operação no Map / Set
-  if (desc && desc.includes('map.set')) {
-    const mapObj = maps?.find(m => m.name === 'map') || maps?.[0];
+  if (desc && (desc.includes('map.set') || desc.includes('freq.set') || desc.includes('count.set'))) {
+    const mapObj = maps?.find(m => m.name === 'map' || m.name === 'freq' || m.name === 'count') || maps?.[0];
     const entries = mapObj?.data?.entries || [];
     const lastEntry = entries[entries.length - 1];
     if (lastEntry) {
       return {
-        title: `Guardou no Map: chave ${formatValue(lastEntry[0])} ➔ índice ${formatValue(lastEntry[1])}`,
-        detail: `Na <strong>Linha ${line}</strong>, como o complemento ainda não havia sido registrado, o número <strong>${formatValue(lastEntry[0])}</strong> foi salvo no Map com seu índice <strong>${formatValue(lastEntry[1])}</strong> para permitir buscas instantâneas O(1).`
+        title: `Armazenou no Map: ${formatValue(lastEntry[0])} ➔ ${formatValue(lastEntry[1])}`,
+        detail: `Na <strong>Linha ${line}</strong>, associou a chave <strong>${formatValue(lastEntry[0])}</strong> ao valor/frequência <strong>${formatValue(lastEntry[1])}</strong> no Map para acesso imediato O(1).`
       };
     }
     return {
-      title: `Armazenou par chave/índice no Map`,
-      detail: `Na <strong>Linha ${line}</strong>, executou <code>map.set()</code> para registrar o valor e seu índice na tabela hash.`
+      title: `Armazenou par chave/valor no Map`,
+      detail: `Na <strong>Linha ${line}</strong>, executou <code>set()</code> na tabela hash.`
+    };
+  }
+  if (desc && desc.includes('.add(')) {
+    return {
+      title: `Adicionou elemento ao Set`,
+      detail: `Na <strong>Linha ${line}</strong>, registrou o caractere/número no <code>Set</code> para verificação de duplicatas e limites de janela em O(1).`
+    };
+  }
+  if (desc && desc.includes('.delete(')) {
+    return {
+      title: `Removeu elemento do Set (Encolhimento)`,
+      detail: `Na <strong>Linha ${line}</strong>, removeu o elemento do <code>Set</code> permitindo que a janela continue avançando sem conflito de duplicata.`
     };
   }
 
@@ -472,6 +484,38 @@ export function generateStepExplanation(step, prevStep, stepIndex, totalSteps) {
     return {
       title: `Calculou a diferença necessária: diff = ${variables.diff}`,
       detail: `Na <strong>Linha ${line}</strong>, calculou o complemento necessário para o alvo: <code>target (${variables.target}) - atual (${currentVal !== undefined ? currentVal : 'nums[' + currentI + ']'}) = diff (${variables.diff})</code>. Em seguida, verificará se <strong>${variables.diff}</strong> já está salvo no Map.`
+    };
+  }
+
+  // 4.1 Janela Deslizante (Sliding Window)
+  if (changedVars && changedVars.includes('windowSum') && variables?.windowSum !== undefined) {
+    return {
+      title: `Atualizou soma da janela deslizante: windowSum = ${variables.windowSum}`,
+      detail: `Na <strong>Linha ${line}</strong>, ajustou a soma interna da janela contígua (adicionando o elemento entrante e/ou subtraindo o saintante).`
+    };
+  }
+  if (changedVars && changedVars.includes('maxLength') && variables?.maxLength !== undefined) {
+    return {
+      title: `Novo recorde de substring: maxLength = ${variables.maxLength}`,
+      detail: `Na <strong>Linha ${line}</strong>, encontrou uma nova janela válida maior: comprimento <strong>${variables.maxLength}</strong>.`
+    };
+  }
+  if (changedVars && changedVars.includes('minLen') && variables?.minLen !== undefined) {
+    return {
+      title: `Novo tamanho mínimo alcançado: minLen = ${variables.minLen}`,
+      detail: `Na <strong>Linha ${line}</strong>, registrou um novo menor subarray que atinge o alvo com tamanho <strong>${variables.minLen}</strong>.`
+    };
+  }
+  if (changedVars && changedVars.includes('maxWater') && variables?.maxWater !== undefined) {
+    return {
+      title: `Calculou volume de água: maxWater = ${variables.maxWater}`,
+      detail: `Na <strong>Linha ${line}</strong>, calculou a área <code>largura (${variables.width}) × altura (${variables.h}) = ${variables.area}</code> e atualizou a capacidade máxima de água para <strong>${variables.maxWater}</strong>.`
+    };
+  }
+  if (changedVars && changedVars.includes('maxProfit') && variables?.maxProfit !== undefined) {
+    return {
+      title: `Novo lucro máximo encontrado: maxProfit = ${variables.maxProfit}`,
+      detail: `Na <strong>Linha ${line}</strong>, calculou o ganho da venda no preço atual menos a menor compra histórica: <strong>${variables.maxProfit}</strong>.`
     };
   }
 
@@ -498,11 +542,23 @@ export function generateStepExplanation(step, prevStep, stepIndex, totalSteps) {
     };
   }
 
-  // 7. Ponteiros de dois ponteiros (left e right)
+  // 7. Ponteiros (left, right, slow, fast, insertPos, p1, p2, p)
+  if (changedVars && (changedVars.includes('slow') || changedVars.includes('fast'))) {
+    return {
+      title: `Ponteiros lento e rápido: slow = ${variables.slow ?? '-'}, fast = ${variables.fast ?? '-'}`,
+      detail: `Na <strong>Linha ${line}</strong>, o ponteiro rápido explorou o array e o ponteiro lento confirmou uma nova posição única in-place.`
+    };
+  }
+  if (changedVars && changedVars.includes('insertPos')) {
+    return {
+      title: `Avançou posição de inserção: insertPos = ${variables.insertPos}`,
+      detail: `Na <strong>Linha ${line}</strong>, realocou elemento não-zero para a posição <strong>${variables.insertPos - 1}</strong> e avançou o ponteiro de inserção.`
+    };
+  }
   if (changedVars && (changedVars.includes('left') || changedVars.includes('right'))) {
     return {
-      title: `Moveu ponteiros: left = ${variables.left}, right = ${variables.right}`,
-      detail: `Na <strong>Linha ${line}</strong>, os ponteiros foram atualizados para aproximar a análise dos elementos em direção ao centro.`
+      title: `Moveu ponteiros da janela/extremos: left = ${variables.left ?? '-'}, right = ${variables.right ?? '-'}`,
+      detail: `Na <strong>Linha ${line}</strong>, os ponteiros foram ajustados para controlar o intervalo em análise.`
     };
   }
 

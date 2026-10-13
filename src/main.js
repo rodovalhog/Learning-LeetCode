@@ -71,8 +71,21 @@ const editor = createCodeEditor({
 
 // Populate Problem Selector
 function setupProblemSelector() {
-  problemSelect.innerHTML = PROBLEMS.map((p, idx) => `
-    <option value="${idx}">${p.number > 0 ? `#${p.number} - ` : ''}${p.title}</option>
+  const groups = {};
+  PROBLEMS.forEach((p, idx) => {
+    const category = p.category || 'Outros';
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push({ p, idx });
+  });
+
+  problemSelect.innerHTML = Object.entries(groups).map(([cat, items]) => `
+    <optgroup label="${cat}">
+      ${items.map(({ p, idx }) => `
+        <option value="${idx}">${p.number > 0 ? `#${p.number} - ` : ''}${p.title}</option>
+      `).join('')}
+    </optgroup>
   `).join('');
 
   problemSelect.addEventListener('change', (e) => {
@@ -93,9 +106,12 @@ function selectProblem(index) {
 }
 
 function renderProblemInfo() {
-  const diffBadgeClass = currentProblem.difficulty === 'Fácil' ? 'badge-difficulty-easy' : 'badge-difficulty-medium';
+  const diffBadgeClass = currentProblem.difficulty === 'Fácil' 
+    ? 'badge-difficulty-easy' 
+    : (currentProblem.difficulty === 'Médio' ? 'badge-difficulty-medium' : 'badge-tag');
   problemDescCard.innerHTML = `
     <div class="problem-meta-badges">
+      ${currentProblem.category ? `<span class="badge-tag" style="background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4); color: #a5b4fc;">${currentProblem.category}</span>` : ''}
       <span class="${diffBadgeClass}">${currentProblem.difficulty}</span>
       ${currentProblem.tags.map(t => `<span class="badge-tag">${t}</span>`).join('')}
     </div>
@@ -370,9 +386,12 @@ function runAllTestCases() {
       return;
     }
 
+    const callRegex = /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\((?:[^)(]|\([^)(]*\))*\);?\s*$/;
+    const baseCode = code.replace(callRegex, '');
+
     const resultsHtml = testCases.map((tc, idx) => {
       // Test code with this input
-      const testCode = `${code}\n${fnName}(...${JSON.stringify(tc.args)});`;
+      const testCode = `${baseCode}\n${fnName}(...${JSON.stringify(tc.args)});`;
       const res = runAndTrace(testCode);
 
       const actual = res.returnValue;
