@@ -548,7 +548,15 @@ body {
 }
 
 .snapshot-card:hover {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+.snapshot-card:hover .badge-line {
+  background: rgba(99, 102, 241, 0.35);
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
 }
 
 .snapshot-card.active-snapshot {
@@ -612,6 +620,40 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.snapshot-user-note-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+  font-size: 0.72rem;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.snapshot-user-note-badge:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.snapshot-user-note-badge .note-icon {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.snapshot-user-note-badge .note-preview-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .snapshot-header-right {
@@ -710,6 +752,125 @@ body {
 .snapshot-explanation-text strong {
   color: #ffffff;
   font-weight: 700;
+}
+
+/* ==========================================================================
+   Snapshot User Step Note / Explanation Input
+   ========================================================================== */
+
+.snapshot-user-note-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7));
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.snapshot-user-note-card:focus-within {
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+}
+
+.snapshot-user-note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.snapshot-user-note-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #a5b4fc;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+  cursor: pointer;
+}
+
+.snapshot-user-note-label svg {
+  color: #818cf8;
+}
+
+.snapshot-user-note-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-copy-suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #c7d2fe;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-copy-suggestion:hover {
+  background: rgba(99, 102, 241, 0.25);
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.6);
+  transform: translateY(-1px);
+}
+
+.btn-copy-suggestion:active {
+  transform: translateY(0);
+}
+
+.note-save-status {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #34d399;
+  min-width: 48px;
+  text-align: right;
+  transition: opacity 0.2s ease;
+}
+
+.snapshot-user-note-input-wrapper {
+  width: 100%;
+}
+
+.snapshot-user-note-textarea {
+  width: 100%;
+  min-height: 52px;
+  background: #090d14;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.75rem;
+  color: #f1f5f9;
+  font-family: inherit;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.snapshot-user-note-textarea:focus {
+  border-color: var(--accent-indigo);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.snapshot-user-note-textarea::placeholder {
+  color: #64748b;
+  font-style: italic;
+  font-size: 0.78rem;
 }
 
 /* Snapshot Sections */

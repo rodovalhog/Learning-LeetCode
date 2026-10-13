@@ -697,9 +697,52 @@ function renderSnapshotVariables(variables, changedVars, pointers) {
 }
 
 /**
+/**
+ * Helper to strip HTML tags for clean plain-text suggestions
+ */
+function stripHtml(html) {
+  return String(html)
+    .replace(/<[^>]*>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"');
+}
+
+/**
+ * Loads user notes from localStorage for a specific problem
+ */
+export function getSavedNotes(problemId = 'default') {
+  try {
+    const raw = localStorage.getItem(`leetcode_notes_${problemId}`);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+/**
+ * Saves a user note to localStorage for a specific problem and step index
+ */
+export function saveUserNote(problemId = 'default', stepIndex, text) {
+  try {
+    const notes = getSavedNotes(problemId);
+    if (!text || text.trim() === '') {
+      delete notes[stepIndex];
+    } else {
+      notes[stepIndex] = text.trim();
+    }
+    localStorage.setItem(`leetcode_notes_${problemId}`, JSON.stringify(notes));
+    return notes;
+  } catch (e) {
+    return {};
+  }
+}
+
+/**
  * Main Snapshots Accordion Renderer
  */
-export function renderSnapshotsAccordion(container, steps, activeStepIndex = 0, onSelectStep = null) {
+export function renderSnapshotsAccordion(container, steps, activeStepIndex = 0, onSelectStep = null, problemId = 'default', onHoverStep = null) {
   if (!container) return;
 
   if (!steps || steps.length === 0) {
@@ -711,6 +754,7 @@ export function renderSnapshotsAccordion(container, steps, activeStepIndex = 0, 
     return;
   }
 
+  const userNotes = getSavedNotes(problemId);
   let html = '<div class="snapshots-accordion-list">';
 
   steps.forEach((step, idx) => {
@@ -718,6 +762,7 @@ export function renderSnapshotsAccordion(container, steps, activeStepIndex = 0, 
     const explanation = generateStepExplanation(step, prevStep, idx, steps.length);
     const isActive = idx === activeStepIndex;
     const isReturn = step.isReturn || step.type === 'return' || step.returnValue !== undefined;
+    const userNote = userNotes[idx] || '';
 
     const badgeMap = {
       func_enter: { label: 'Início', cls: 'badge-indigo' },
@@ -744,14 +789,18 @@ export function renderSnapshotsAccordion(container, steps, activeStepIndex = 0, 
     const isInitiallyCollapsed = steps.length > 8 && !isActive && !isReturn && idx > 2;
 
     html += `
-      <div class="snapshot-card ${isActive ? 'active-snapshot' : ''} ${isReturn ? 'snapshot-return-card' : ''} ${isInitiallyCollapsed ? 'collapsed' : ''}" data-step-index="${idx}">
+      <div class="snapshot-card ${isActive ? 'active-snapshot' : ''} ${isReturn ? 'snapshot-return-card' : ''} ${isInitiallyCollapsed ? 'collapsed' : ''}" data-step-index="${idx}" data-line="${step.line || 1}">
         <!-- Accordion Header -->
         <div class="snapshot-header" data-toggle-index="${idx}">
           <div class="snapshot-header-left">
             <span class="snapshot-step-pill">Etapa ${idx + 1}</span>
             <span class="badge ${badgeInfo.cls}">${badgeInfo.label}</span>
             <span class="badge-line">Linha ${step.line}</span>
-            <h4 class="snapshot-title-text">${escapeHtml(explanation.title)}</h4>
+            <h4 class="snapshot-title-text">${escapeHtml(stripHtml(explanation.title))}</h4>
+            <div class="snapshot-user-note-badge" id="header-note-badge-${idx}" style="${userNote ? '' : 'display: none;'}" title="${escapeHtml(userNote)}">
+              <span class="note-icon">💬</span>
+              <span class="note-preview-text" id="header-note-text-${idx}">${escapeHtml(userNote)}</span>
+            </div>
           </div>
           <div class="snapshot-header-right">
             <button class="btn-jump-step" data-jump-index="${idx}" title="Abrir esta etapa no player dinâmico">
@@ -771,12 +820,6 @@ export function renderSnapshotsAccordion(container, steps, activeStepIndex = 0, 
         <!-- Accordion Body (Colapsável) -->
         <div class="snapshot-body-wrapper">
           <div class="snapshot-body-content">
-            <!-- Pedagogical Explanation -->
-            <div class="snapshot-explanation-card">
-              <div class="snapshot-explanation-icon">💡</div>
-              <div class="snapshot-explanation-text">${explanation.detail}</div>
-            </div>
-
             <!-- Mini Arrays with Pointers -->
             ${renderSnapshotArrays(step.arrays, step.pointers, foundIndices)}
 
@@ -785,6 +828,43 @@ export function renderSnapshotsAccordion(container, steps, activeStepIndex = 0, 
 
             <!-- Mini Scope Variables -->
             ${renderSnapshotVariables(step.variables, step.changedVars, step.pointers)}
+
+            <!-- Pedagogical Explanation -->
+            <div class="snapshot-explanation-card">
+              <div class="snapshot-explanation-icon">💡</div>
+              <div class="snapshot-explanation-text">${explanation.detail}</div>
+            </div>
+
+            <!-- Input para o Usuário Escrever a Explicação da Etapa -->
+            <div class="snapshot-user-note-card" data-step-index="${idx}">
+              <div class="snapshot-user-note-header">
+                <label class="snapshot-user-note-label" for="user-step-note-${idx}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                  </svg>
+                  <span>Sua Explicação / Anotação desta Etapa:</span>
+                </label>
+                <div class="snapshot-user-note-actions">
+                  <button type="button" class="btn-copy-suggestion" data-step-index="${idx}" data-suggest="${escapeHtml(stripHtml(explanation.detail))}" title="Preencher com sugestão automática">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>Usar Sugestão</span>
+                  </button>
+                  <span class="note-save-status" id="save-status-${idx}">${userNote ? '✓ Salvo' : ''}</span>
+                </div>
+              </div>
+              <div class="snapshot-user-note-input-wrapper">
+                <textarea
+                  id="user-step-note-${idx}"
+                  class="snapshot-user-note-textarea"
+                  data-step-index="${idx}"
+                  placeholder="Escreva sua explicação aqui... Ex: Explicação: nesse momento foi criado um hashTable para alocar valores na memoria"
+                  rows="2"
+                >${escapeHtml(userNote)}</textarea>
+              </div>
+            </div>
 
             <!-- Return Highlight (se for o retorno) -->
             ${isReturn && step.returnValue !== undefined ? `
@@ -811,7 +891,7 @@ export function renderSnapshotsAccordion(container, steps, activeStepIndex = 0, 
   // Listeners para colapsar/expandir ao clicar no cabeçalho
   container.querySelectorAll('.snapshot-header').forEach(header => {
     header.addEventListener('click', (e) => {
-      if (e.target.closest('.btn-jump-step')) return;
+      if (e.target.closest('.btn-jump-step') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('button')) return;
       const card = header.closest('.snapshot-card');
       card.classList.toggle('collapsed');
     });
@@ -827,4 +907,70 @@ export function renderSnapshotsAccordion(container, steps, activeStepIndex = 0, 
       }
     });
   });
+
+  // Listeners para os textareas de anotação do usuário
+  container.querySelectorAll('.snapshot-user-note-textarea').forEach(textarea => {
+    const stepIdx = parseInt(textarea.dataset.stepIndex, 10);
+    const saveStatus = container.querySelector(`#save-status-${stepIdx}`);
+    const headerBadge = container.querySelector(`#header-note-badge-${stepIdx}`);
+    const headerText = container.querySelector(`#header-note-text-${stepIdx}`);
+
+    textarea.addEventListener('click', (e) => e.stopPropagation());
+    textarea.addEventListener('keydown', (e) => e.stopPropagation());
+
+    textarea.addEventListener('input', () => {
+      const val = textarea.value;
+      if (saveStatus) saveStatus.textContent = 'Salvando...';
+
+      saveUserNote(problemId, stepIdx, val);
+
+      if (saveStatus) {
+        setTimeout(() => {
+          saveStatus.textContent = val.trim() ? '✓ Salvo' : '';
+        }, 300);
+      }
+
+      // Atualiza badge de preview no cabeçalho
+      if (headerBadge && headerText) {
+        if (val.trim()) {
+          headerText.textContent = val.trim();
+          headerBadge.title = val.trim();
+          headerBadge.style.display = 'inline-flex';
+        } else {
+          headerBadge.style.display = 'none';
+        }
+      }
+    });
+  });
+
+  // Listeners para o botão "Usar Sugestão"
+  container.querySelectorAll('.btn-copy-suggestion').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const stepIdx = parseInt(btn.dataset.stepIndex, 10);
+      const suggest = btn.dataset.suggest || '';
+      const textarea = container.querySelector(`#user-step-note-${stepIdx}`);
+      if (textarea) {
+        textarea.value = `Explicação: ${suggest}`;
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        textarea.focus();
+      }
+    });
+  });
+
+  // Listeners para hover nos cartões de snapshot para destacar a linha correspondente no editor
+  container.querySelectorAll('.snapshot-card').forEach(card => {
+    const idx = parseInt(card.dataset.stepIndex, 10);
+    const line = parseInt(card.dataset.line, 10);
+
+    const triggerHover = () => {
+      if (onHoverStep && line) {
+        onHoverStep(idx, line);
+      }
+    };
+
+    card.addEventListener('mouseenter', triggerHover);
+    card.addEventListener('pointerenter', triggerHover);
+  });
 }
+

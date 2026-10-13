@@ -166,8 +166,14 @@ function switchViewMode(mode) {
     viewSnapshotsContainer.style.display = 'flex';
     viewInteractiveContainer.style.display = 'none';
     renderSnapshots();
+    const activeStep = executionResult?.steps?.[currentStepIndex];
+    if (activeStep && activeStep.line) {
+      editor.highlightLine(activeStep.line);
+    }
   }
 }
+
+let snapshotHoverTimer = null;
 
 function renderSnapshots() {
   if (!executionResult || !executionResult.steps) {
@@ -185,6 +191,12 @@ function renderSnapshots() {
       // Quando clica em "Ver no Player", comuta para a aba do player e vai para o passo
       switchViewMode('interactive');
       goToStep(jumpIndex);
+    },
+    currentProblem ? currentProblem.id : 'default',
+    (hoverIndex, line) => {
+      if (line && line > 0) {
+        editor.highlightLine(line);
+      }
     }
   );
 }

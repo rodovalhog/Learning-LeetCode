@@ -125,7 +125,7 @@ export function createCodeEditor({ container, initialCode, onChange }) {
       try {
         const line = view.state.doc.line(Math.min(lineNum, view.state.doc.lines));
         view.dispatch({
-          effects: EditorView.scrollIntoView(line.from, { y: 'center' })
+          effects: EditorView.scrollIntoView(line.from, { y: 'nearest' })
         });
       } catch (e) {
         // Ignora erro de scroll em documentos pequenos
