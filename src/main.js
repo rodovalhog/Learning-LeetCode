@@ -588,6 +588,60 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+// ==========================================
+// Hotbanner LinkedIn Setup
+// ==========================================
+function setupLinkedInHotbanner() {
+  const linkedinProfile = "https://www.linkedin.com/in/guilherme-rodovalho/";
+  const message = `Olá, Guilherme! Encontrei seu perfil pelo site e gostaria de conversar.`;
+
+  const button = document.querySelector("#linkedin-contact");
+  const label = document.querySelector("#linkedin-btn-label");
+  const closeBtn = document.querySelector("#btn-close-hotbanner");
+  const hotbanner = document.querySelector("#linkedin-hotbanner");
+
+  if (button) {
+    button.addEventListener("click", async () => {
+      // Immediate visual feedback
+      if (label) {
+        const originalText = label.textContent;
+        label.textContent = "✓ Mensagem copiada!";
+        button.classList.add("copied");
+        setTimeout(() => {
+          label.textContent = originalText;
+          button.classList.remove("copied");
+        }, 2500);
+      }
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(message);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = message;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
+      } catch (err) {
+        console.warn("Não foi possível copiar automaticamente:", err);
+      }
+
+      window.open(linkedinProfile, "_blank");
+    });
+  }
+
+  if (closeBtn && hotbanner) {
+    closeBtn.addEventListener("click", () => {
+      hotbanner.style.display = "none";
+    });
+  }
+}
+
 // Boot the application
 setupProblemSelector();
 selectProblem(0);
+setupLinkedInHotbanner();
