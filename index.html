@@ -139,6 +139,55 @@
       <!-- Problem Description Collapsible Card -->
       <div id="problem-desc-card" class="problem-desc-card"></div>
 
+      <!-- Real-time Big-O Complexity Bar -->
+      <div id="complexity-bar" class="complexity-bar">
+        <div class="complexity-bar-left">
+          <div class="complexity-badge-group">
+            <span class="complexity-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Tempo:
+            </span>
+            <span id="badge-time-complexity" class="badge-complexity badge-complexity-good" title="Complexidade de Tempo estimada">O(n)</span>
+          </div>
+
+          <div class="complexity-badge-group">
+            <span class="complexity-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              </svg>
+              Espaço:
+            </span>
+            <span id="badge-space-complexity" class="badge-complexity badge-complexity-great" title="Complexidade de Espaço estimada">O(1)</span>
+          </div>
+
+          <span id="badge-complexity-optimal" class="badge-optimal" style="display: none;" title="Solução ótima alcançada">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <span>Ótimo</span>
+          </span>
+        </div>
+
+        <div class="complexity-bar-right">
+          <span id="complexity-summary-desc" class="complexity-summary-desc">Analisando complexidade...</span>
+          <button id="btn-complexity-details" class="btn-complexity-toggle" title="Ver detalhes da análise Big-O">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Collapsible Detailed Breakdown Panel -->
+      <div id="complexity-details-panel" class="complexity-details-panel" style="display: none;">
+        <div id="complexity-details-content"></div>
+      </div>
+
       <!-- CodeMirror Editor -->
       <div class="editor-wrapper">
         <div id="editor-container" class="editor-container"></div>

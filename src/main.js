@@ -3,6 +3,7 @@ import { PROBLEMS } from './problems.js';
 import { runAndTrace } from './tracer.js';
 import { createCodeEditor } from './editor.js';
 import { renderExecutionState, renderSnapshotsAccordion } from './visualizer.js';
+import { analyzeComplexity } from './complexityAnalyzer.js';
 import confetti from 'canvas-confetti';
 
 // State variables
@@ -25,6 +26,15 @@ const problemDescCard = document.getElementById('problem-desc-card');
 const editorContainer = document.getElementById('editor-container');
 const testCasesButtonsContainer = document.getElementById('test-cases-buttons');
 const visualizerScrollArea = document.getElementById('visualizer-scroll-area');
+
+// Big-O Live Complexity Bar Elements
+const badgeTimeComplexity = document.getElementById('badge-time-complexity');
+const badgeSpaceComplexity = document.getElementById('badge-space-complexity');
+const badgeComplexityOptimal = document.getElementById('badge-complexity-optimal');
+const complexitySummaryDesc = document.getElementById('complexity-summary-desc');
+const btnComplexityDetails = document.getElementById('btn-complexity-details');
+const complexityDetailsPanel = document.getElementById('complexity-details-panel');
+const complexityDetailsContent = document.getElementById('complexity-details-content');
 
 // View Mode Tabs & Containers
 const tabInteractive = document.getElementById('tab-interactive');
@@ -102,6 +112,7 @@ function selectProblem(index) {
   renderProblemInfo();
   renderTestCaseButtons();
   editor.setCode(currentProblem.defaultCode);
+  updateComplexityDisplay(currentProblem.defaultCode);
   executeCurrentCode();
 }
 
@@ -113,6 +124,8 @@ function renderProblemInfo() {
     <div class="problem-meta-badges">
       ${currentProblem.category ? `<span class="badge-tag" style="background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4); color: #a5b4fc;">${currentProblem.category}</span>` : ''}
       <span class="${diffBadgeClass}">${currentProblem.difficulty}</span>
+      ${currentProblem.timeComplexity ? `<span class="badge-tag" style="color: #67e8f9; border-color: rgba(6, 182, 212, 0.35); background: rgba(6, 182, 212, 0.12);" title="Complexidade de tempo ideal esperada">⏱️ ${currentProblem.timeComplexity}</span>` : ''}
+      ${currentProblem.spaceComplexity ? `<span class="badge-tag" style="color: #a7f3d0; border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.12);" title="Complexidade de espaço ideal esperada">💾 ${currentProblem.spaceComplexity}</span>` : ''}
       ${currentProblem.tags.map(t => `<span class="badge-tag">${t}</span>`).join('')}
     </div>
     <div class="problem-prompt">${currentProblem.description}</div>
@@ -228,6 +241,84 @@ function updateActiveSnapshotInAccordion(index) {
   });
 }
 
+let isComplexityPanelOpen = false;
+
+/**
+ * Updates real-time Big-O Complexity bar and drawer
+ */
+function updateComplexityDisplay(code, executionStepsCount = null) {
+  if (!badgeTimeComplexity) return;
+
+  const analysis = analyzeComplexity(code, currentProblem);
+
+  // Time Badge
+  badgeTimeComplexity.textContent = analysis.time;
+  badgeTimeComplexity.className = `badge-complexity badge-complexity-${analysis.timeRating.level}`;
+  badgeTimeComplexity.title = analysis.timeDesc;
+
+  // Space Badge
+  badgeSpaceComplexity.textContent = analysis.space;
+  badgeSpaceComplexity.className = `badge-complexity badge-complexity-${analysis.spaceRating.level}`;
+  badgeSpaceComplexity.title = analysis.spaceDesc;
+
+  // Optimal Badge
+  if (analysis.isOptimal === true) {
+    badgeComplexityOptimal.style.display = 'inline-flex';
+    badgeComplexityOptimal.title = analysis.comparisonNote || 'Solução ótima alcançada!';
+  } else {
+    badgeComplexityOptimal.style.display = 'none';
+  }
+
+  // Summary Text
+  let summary = analysis.timeDesc;
+  if (executionStepsCount !== null && executionStepsCount > 0) {
+    summary += ` • ${executionStepsCount} passos`;
+  }
+  complexitySummaryDesc.textContent = summary;
+  complexitySummaryDesc.title = summary;
+
+  // Details Panel Content
+  if (complexityDetailsContent) {
+    complexityDetailsContent.innerHTML = `
+      <h4>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        Diagnóstico de Complexidade Big-O
+      </h4>
+      <div style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="badge-tag" style="color: ${analysis.timeRating.color}; border-color: ${analysis.timeRating.color}40;">
+          ⏱️ Tempo: <strong>${analysis.time}</strong> (${analysis.timeRating.label})
+        </span>
+        <span class="badge-tag" style="color: ${analysis.spaceRating.color}; border-color: ${analysis.spaceRating.color}40;">
+          💾 Espaço: <strong>${analysis.space}</strong> (${analysis.spaceRating.label})
+        </span>
+        ${currentProblem && currentProblem.timeComplexity ? `
+          <span class="badge-tag" style="color: #cbd5e1;">
+            🎯 Meta do Problema: <strong>${currentProblem.timeComplexity}</strong> / <strong>${currentProblem.spaceComplexity || 'O(1)'}</strong>
+          </span>
+        ` : ''}
+      </div>
+      <ul class="complexity-details-list">
+        ${analysis.details.map(d => `<li>${d}</li>`).join('')}
+        <li><em>Tempo:</em> ${analysis.timeDesc}</li>
+        <li><em>Espaço:</em> ${analysis.spaceDesc}</li>
+        ${analysis.comparisonNote ? `<li style="color: ${analysis.isOptimal ? '#34d399' : '#fbbf24'};"><strong>${analysis.comparisonNote}</strong></li>` : ''}
+      </ul>
+    `;
+  }
+}
+
+if (btnComplexityDetails && complexityDetailsPanel) {
+  btnComplexityDetails.addEventListener('click', () => {
+    isComplexityPanelOpen = !isComplexityPanelOpen;
+    complexityDetailsPanel.style.display = isComplexityPanelOpen ? 'block' : 'none';
+    btnComplexityDetails.style.background = isComplexityPanelOpen ? 'rgba(99, 102, 241, 0.25)' : '';
+  });
+}
+
 /**
  * Executes current code and updates visualizer state
  */
@@ -236,6 +327,7 @@ function executeCurrentCode() {
   executionResult = runAndTrace(code);
 
   if (!executionResult.success) {
+    updateComplexityDisplay(code);
     stopPlayback();
     editor.highlightLine(executionResult.error?.line || 1);
     renderExecutionState(visualizerScrollArea, null, 0, executionResult.error);
@@ -253,6 +345,7 @@ function executeCurrentCode() {
   }
 
   const steps = executionResult.steps || [];
+  updateComplexityDisplay(code, steps.length);
   stepSlider.max = Math.max(0, steps.length - 1);
   snapshotsCountBadge.textContent = `${steps.length}`;
   snapshotsToolbarCounter.textContent = `${steps.length} etapa${steps.length === 1 ? '' : 's'} gerada${steps.length === 1 ? '' : 's'}`;
@@ -264,6 +357,9 @@ function executeCurrentCode() {
 }
 
 function handleCodeChange(newCode) {
+  // Update Big-O analysis immediately on keystroke
+  updateComplexityDisplay(newCode);
+
   if (!autoRunEnabled) return;
   if (debounceTimer) clearTimeout(debounceTimer);
 
@@ -418,6 +514,16 @@ function runAllTestCases() {
       `;
     }).join('');
 
+    const analysis = analyzeComplexity(code, currentProblem);
+    const complexitySummaryRow = `
+      <div style="margin-top: 0.65rem; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        <span style="font-size: 0.76rem; color: #cbd5e1; font-weight: 600;">Complexidade Analisada:</span>
+        <span class="badge-complexity badge-complexity-${analysis.timeRating.level}">Tempo: ${analysis.time}</span>
+        <span class="badge-complexity badge-complexity-${analysis.spaceRating.level}">Espaço: ${analysis.space}</span>
+        ${analysis.isOptimal === true ? '<span class="badge-optimal">✨ Complexidade Ótima!</span>' : ''}
+      </div>
+    `;
+
     const summaryHtml = `
       <div style="padding: 0.75rem 1rem; border-radius: 8px; background: ${allPassed ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)'}; border: 1px solid ${allPassed ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'};">
         <h3 style="font-size: 1rem; color: ${allPassed ? '#34d399' : '#fb7185'}; margin-bottom: 0.25rem;">
@@ -426,6 +532,7 @@ function runAllTestCases() {
         <p style="font-size: 0.8rem; color: var(--text-muted);">
           ${allPassed ? 'Sua solução está correta e passou em todos os casos de teste do LeetCode.' : 'Revise a lógica para cobrir todos os cenários de borda.'}
         </p>
+        ${complexitySummaryRow}
       </div>
     `;
 

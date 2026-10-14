@@ -8,6 +8,8 @@ export const PROBLEMS = [
     number: 643,
     title: 'Maximum Average Subarray I (Janela Fixa K)',
     difficulty: 'Fácil',
+    timeComplexity: 'O(n)',
+    spaceComplexity: 'O(1)',
     tags: ['Sliding Window', 'Array', 'LeetCode #643'],
     description: `Dado um array de inteiros <code>nums</code> consistindo de <code>n</code> elementos e um inteiro <code>k</code>, encontre um subarray contíguo cujo comprimento seja igual a <code>k</code> que tenha o <strong>maior valor médio</strong> e retorne esse valor.
     <br><br>
@@ -44,6 +46,8 @@ findMaxAverage([1, 12, -5, -6, 50, 3], 4);`,
     number: 3,
     title: 'Longest Substring Without Repeating (Janela Dinâmica)',
     difficulty: 'Médio',
+    timeComplexity: 'O(n)',
+    spaceComplexity: 'O(n)',
     tags: ['Sliding Window', 'Set', 'Strings', 'LeetCode #3'],
     description: `Dada uma string <code>s</code>, encontre o comprimento da <strong>substring mais longa</strong> sem caracteres repetidos.
     <br><br>
@@ -81,6 +85,8 @@ lengthOfLongestSubstring("abcabcbb");`,
     number: 209,
     title: 'Minimum Size Subarray Sum (Janela Encolhível)',
     difficulty: 'Médio',
+    timeComplexity: 'O(n)',
+    spaceComplexity: 'O(1)',
     tags: ['Sliding Window', 'Array', 'LeetCode #209'],
     description: `Dado um array de inteiros positivos <code>nums</code> e um inteiro positivo <code>target</code>, retorne o <strong>comprimento mínimo</strong> de um subarray contíguo cuja soma seja maior ou igual a <code>target</code>. Se não houver, retorne <code>0</code>.
     <br><br>
@@ -121,6 +127,8 @@ minSubArrayLen(7, [2, 3, 1, 2, 4, 3]);`,
     number: 167,
     title: 'Two Sum II - Input Array Is Sorted (Ponteiros Convergentes)',
     difficulty: 'Médio',
+    timeComplexity: 'O(n)',
+    spaceComplexity: 'O(1)',
     tags: ['Dois Ponteiros', 'Array Ordenado', 'LeetCode #167'],
     description: `Dado um array de inteiros <code>numbers</code> ordenado em ordem não-decrescente, encontre dois números cuja soma seja igual a <code>target</code>.
     <br><br>
@@ -715,6 +723,217 @@ maxProfit([7, 1, 5, 3, 6, 4]);`,
     testCases: [
       { id: 1, name: 'Exemplo 1 ([7, 1, 5, 3, 6, 4])', args: [[7, 1, 5, 3, 6, 4]], expected: 5 },
       { id: 2, name: 'Exemplo 2 ([7, 6, 4, 3, 1])', args: [[7, 6, 4, 3, 1]], expected: 0 }
+    ]
+  },
+
+  // ==========================================
+  // LISTAS ENCADEADAS (LINKED LISTS)
+  // ==========================================
+  {
+    id: 'reverse-linked-list',
+    category: 'Listas Encadeadas (Linked Lists)',
+    number: 206,
+    title: 'Reverse Linked List (Inverter Lista)',
+    difficulty: 'Fácil',
+    timeComplexity: 'O(n)',
+    spaceComplexity: 'O(1)',
+    tags: ['Linked List', 'Ponteiros In-Place', 'LeetCode #206'],
+    description: `Dada a cabeça de uma lista encadeada simples, inverta a ordem de todos os nós <strong>in-place</strong> e retorne a nova cabeça.
+    <br><br>
+    <strong>Técnica de 3 Ponteiros:</strong> Mantemos <code>prev</code> (inicia em null), <code>curr</code> (o nó atual) e <code>nextTemp</code> (para salvar a referência do próximo nó antes de inverter a seta <code>curr.next = prev</code>).
+    <br>
+    Complexidade Alvo: <strong>Tempo O(n)</strong> | <strong>Espaço O(1)</strong>.`,
+    defaultCode: `function reverseList(head) {
+  let prev = null;
+  let curr = head;
+
+  while (curr !== null) {
+    const nextTemp = curr.next; // Salva o próximo nó
+    curr.next = prev;          // Inverte o ponteiro para trás
+    prev = curr;               // Move prev para a frente
+    curr = nextTemp;           // Move curr para a frente
+  }
+
+  return prev;
+}
+
+// Lista: 1 -> 2 -> 3 -> 4 -> 5 -> null
+const list = {
+  val: 1,
+  next: {
+    val: 2,
+    next: {
+      val: 3,
+      next: {
+        val: 4,
+        next: { val: 5, next: null }
+      }
+    }
+  }
+};
+
+reverseList(list);`,
+    testCases: [
+      {
+        id: 1,
+        name: 'Exemplo 1 (1 -> 2 -> 3)',
+        args: [{ val: 1, next: { val: 2, next: { val: 3, next: null } } }],
+        expected: { val: 3, next: { val: 2, next: { val: 1, next: null } } }
+      },
+      {
+        id: 2,
+        name: 'Exemplo 2 (1 -> 2)',
+        args: [{ val: 1, next: { val: 2, next: null } }],
+        expected: { val: 2, next: { val: 1, next: null } }
+      }
+    ]
+  },
+  {
+    id: 'middle-of-linked-list',
+    category: 'Listas Encadeadas (Linked Lists)',
+    number: 876,
+    title: 'Middle of the Linked List (Nó Central)',
+    difficulty: 'Fácil',
+    timeComplexity: 'O(n)',
+    spaceComplexity: 'O(1)',
+    tags: ['Linked List', 'Fast & Slow', 'LeetCode #876'],
+    description: `Dada a cabeça de uma lista encadeada, retorne o <strong>nó do meio</strong> em uma única passagem (one-pass). Se o número de nós for par, retorne o segundo nó do meio.
+    <br><br>
+    <strong>Técnica de Dois Ponteiros (Tortoise & Hare):</strong> <code>slow</code> avança 1 nó por iteração enquanto <code>fast</code> avança 2 nós. Quando <code>fast</code> chega ao final, <code>slow</code> estará exatamente no centro.`,
+    defaultCode: `function middleNode(head) {
+  let slow = head;
+  let fast = head;
+
+  // Enquanto a Lebre (fast) puder dar 2 passos
+  while (fast !== null && fast.next !== null) {
+    slow = slow.next;      // Tartaruga dá 1 passo
+    fast = fast.next.next; // Lebre dá 2 passos
+  }
+
+  return slow;
+}
+
+// Lista: 1 -> 2 -> 3 -> 4 -> 5 -> null (Meio: 3)
+const list = {
+  val: 1,
+  next: {
+    val: 2,
+    next: {
+      val: 3,
+      next: {
+        val: 4,
+        next: { val: 5, next: null }
+      }
+    }
+  }
+};
+
+middleNode(list);`,
+    testCases: [
+      {
+        id: 1,
+        name: 'Ímpar [1, 2, 3, 4, 5]',
+        args: [{ val: 1, next: { val: 2, next: { val: 3, next: { val: 4, next: { val: 5, next: null } } } } }],
+        expected: { val: 3, next: { val: 4, next: { val: 5, next: null } } }
+      }
+    ]
+  },
+  {
+    id: 'linked-list-cycle',
+    category: 'Listas Encadeadas (Linked Lists)',
+    number: 141,
+    title: 'Linked List Cycle (Detecção de Ciclo)',
+    difficulty: 'Fácil',
+    timeComplexity: 'O(n)',
+    spaceComplexity: 'O(1)',
+    tags: ['Linked List', 'Floyd Cycle', 'LeetCode #141'],
+    description: `Determine se uma lista encadeada possui um <strong>ciclo</strong> (se algum nó aponta de volta para um nó anterior na cadeia).
+    <br><br>
+    <strong>Algoritmo de Floyd:</strong> Em vez de gastar O(n) de memória com um Set, colocamos um ponteiro lento (1 passo) e um rápido (2 passos). Se houver ciclo, a lebre inevitavelmente alcança a tartaruga em tempo O(n).`,
+    defaultCode: `function hasCycle(head) {
+  let slow = head;
+  let fast = head;
+
+  while (fast !== null && fast.next !== null) {
+    slow = slow.next;         // Anda 1 passo
+    fast = fast.next.next;    // Anda 2 passos
+
+    if (slow === fast) {
+      return true; // Encontraram-se! Há ciclo na lista
+    }
+  }
+
+  return false; // Chegou a null -> Sem ciclo
+}
+
+// Cria nós encadeados com ciclo circular:
+const n1 = { val: 3, next: null };
+const n2 = { val: 2, next: null };
+const n3 = { val: 0, next: null };
+const n4 = { val: -4, next: null };
+
+n1.next = n2;
+n2.next = n3;
+n3.next = n4;
+n4.next = n2; // Aponta de volta para n2 formando um ciclo!
+
+hasCycle(n1);`,
+    testCases: [
+      {
+        id: 1,
+        name: 'Sem ciclo [1 -> 2 -> null]',
+        args: [{ val: 1, next: { val: 2, next: null } }],
+        expected: false
+      }
+    ]
+  },
+  {
+    id: 'merge-two-sorted-lists',
+    category: 'Listas Encadeadas (Linked Lists)',
+    number: 21,
+    title: 'Merge Two Sorted Lists (Mesclar Listas)',
+    difficulty: 'Fácil',
+    timeComplexity: 'O(n + m)',
+    spaceComplexity: 'O(1)',
+    tags: ['Linked List', 'Dummy Head', 'LeetCode #21'],
+    description: `Dadas duas listas encadeadas ordenadas, mescle-as em uma única lista ordenada e retorne sua cabeça.
+    <br><br>
+    <strong>Técnica do Dummy Node:</strong> Usamos um nó sentinela <code>dummy = { val: -1, next: null }</code> para construir a nova lista conectando diretamente os nós existentes sem alocar nova memória.`,
+    defaultCode: `function mergeTwoLists(list1, list2) {
+  const dummy = { val: -1, next: null };
+  let current = dummy;
+
+  while (list1 !== null && list2 !== null) {
+    if (list1.val <= list2.val) {
+      current.next = list1;
+      list1 = list1.next;
+    } else {
+      current.next = list2;
+      list2 = list2.next;
+    }
+    current = current.next;
+  }
+
+  // Conecta os nós restantes da lista que sobrou
+  current.next = list1 !== null ? list1 : list2;
+
+  return dummy.next;
+}
+
+const l1 = { val: 1, next: { val: 2, next: { val: 4, next: null } } };
+const l2 = { val: 1, next: { val: 3, next: { val: 4, next: null } } };
+
+mergeTwoLists(l1, l2);`,
+    testCases: [
+      {
+        id: 1,
+        name: 'Exemplo [1, 2] e [3, 4]',
+        args: [
+          { val: 1, next: { val: 2, next: null } },
+          { val: 3, next: { val: 4, next: null } }
+        ],
+        expected: { val: 1, next: { val: 2, next: { val: 3, next: { val: 4, next: null } } } }
+      }
     ]
   },
 
